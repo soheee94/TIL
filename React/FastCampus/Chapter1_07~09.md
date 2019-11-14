@@ -77,7 +77,7 @@ const setNumber = numberState[1];
     setNumber(prevNumber => prevNumber - 1);
   }
 ```
-함수형 업데이트는 주로 나중에 컴포넌트를 최적화 할 때 사용한다! (나중에 알아보기)
+함수형 업데이트는 주로 나중에 컴포넌트를 최적화 할 때 사용한다! (나중에 알아보기) > Chapter 1_19
 
 
 # 8. input 상태 관리하기
