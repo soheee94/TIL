@@ -426,3 +426,238 @@ const fullWidthStyles = css`
     `}
 `;
 ```
+
+## Dialog 만들기
+
+```javascript
+// Dialog.js
+import React from "react";
+import styled from "styled-components";
+import Button from "./Button";
+
+const DarkBackground = styled.div`
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+`;
+
+// scss 문법이 적용 되므로 h3과 p를 따로 컴포넌트 만들어주지 않아도 된당
+const DialogBlock = styled.div`
+  width: 320px;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 2px;
+
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  p {
+    font-size: 1.125rem;
+  }
+`;
+
+const ButtonGroup = styled.div`
+  margin-top: 3rem;
+  display: flex;
+  justify-content: flex-end;
+`;
+
+// 기존 Button 컴포넌트 커스터마이징 스타일링
+const ShortMarginButton = styled(Button)`
+  & + & {
+    margin-left: 0.5rem;
+  }
+`;
+
+function Dialog({
+  title,
+  children,
+  confirmText,
+  cancelText,
+  visible,
+  onConfirm,
+  onCancel
+}) {
+  if (!visible) return null;
+  return (
+    <DarkBackground>
+      <DialogBlock>
+        <h3>{title}</h3>
+        <p>{children}</p>
+        <ButtonGroup>
+          <ShortMarginButton color="gray" onClick={onCancel}>
+            {cancelText}
+          </ShortMarginButton>
+          <ShortMarginButton color="pink" onClick={onConfirm}>
+            {confirmText}
+          </ShortMarginButton>
+        </ButtonGroup>
+      </DialogBlock>
+    </DarkBackground>
+  );
+}
+
+Dialog.defaultProps = {
+  confirmText: "확인",
+  cancelText: "취소"
+};
+
+export default Dialog;
+```
+
+**ShortMarginButton** :  
+컴포넌트의 스타일을 커스터마이징 할 때에는 해당 컴포넌트에서 `className` props 를 내부 엘리먼트에게 전달이 되고 있는지 확인해주어야 합니다.
+
+```javascript
+const MyComponent = ({ className }) => {
+  return <div className={className}></div>;
+};
+
+const ExtendedComponent = styled(MyComponent)`
+  background: black;
+`;
+```
+
+참고로 우리가 만든 Button 컴포넌트의 경우에는 `...rest` 를 통하여 전달이 되고 있습니다.
+
+## 트랜지션 구현하기
+
+트랜지션 효과를 적용 할 때에는 CSS Keyframe 을 사용하며, `styled-components` 에서 이를 사용 할 때에는 `keyframes` 라는 유틸을 사용합니다.
+
+```javascript
+// Dialog.js
+import styled, { keyframes } from "styled-components";
+import Button from "./Button";
+
+const fadeIn = keyframes`
+    from{
+        opacity : 0
+    }
+    to{
+        opacity : 1
+    }
+`;
+
+const slideUp = keyframes`
+    from{
+        transform: translateY(200px)
+    }
+    to{
+        transform: translateY(0px)
+    }
+`;
+const DarkBackground = styled.div`
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+
+  animation-duration: 0.25s;
+  animation-timing-function: ease-out;
+  animation-name: ${fadeIn};
+  animation-fill-mode: forwards;
+`;
+
+const DialogBlock = styled.div`
+  width: 320px;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 2px;
+
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  p {
+    font-size: 1.125rem;
+  }
+
+  animation-duration: 0.25s;
+  animation-timing-function: ease-out;
+  animation-name: ${slideUp};
+  animation-fill-mode: forwards;
+`;
+```
+
+사라지는 효과를 구현하려면 `Dialog` 컴포넌트에서 두개의 로컬 상태를 관리해주어야 합니다. 하나는 현재 트랜지션 효과를 보여주고 있는 중이라는 상태를 의미하는 `animate`, 나머지 하나는 실제로 컴포넌트가 사라지는 시점을 지연시키기 위한 `localVisible` 값입니다.
+
+그리고 `useEffect` 를 하나 작성해주어야 하는데요, `visible` 값이 true 에서 false 로 바뀌는 시점을 감지하여 `animate` 값을 true 로 바꿔주고 setTimeout 함수를 사용하여 250ms 이후 false로 바꾸어 주어야 합니다.
+
+추가적으로, `!visible` 조건에서 `null` 를 반환하는 대신에 `!animate && !localVisible` 조건에서 `null` 을 반환하도록 수정해주어야 합니다.
+
+```javascript
+// Dialog.js
+// Dialog가 꺼지는 애니메이트가 실행되는지 여부
+const [animate, setAnimate] = useState(false);
+// 실제로 사라지는 시점 (visible은 꺼지는 버튼 클릭했을 때 시점)
+const [localVisible, setLocalVisible] = useState(visible);
+
+useEffect(() => {
+  //   Dialog 꺼지라고 요청, 그러나 아직 애니메이트 실행 전
+  if (localVisible && !visible) {
+    setAnimate(true);
+    setTimeout(() => setAnimate(false), 250);
+  }
+  setLocalVisible(visible);
+}, [localVisible, visible]);
+
+if (!animate && !localVisible) return null;
+```
+
+```javascript
+// Dialog.js
+// 생략
+
+const fadeOut = keyframes`
+    from{
+        opacity : 1
+    }
+    to{
+        opacity : 0
+    }
+`;
+
+// 생략
+
+const slideDown = keyframes`
+    from{
+        transform: translateY(0px)
+    }
+    to{
+        transform: translateY(200px)
+    }
+`;
+const DarkBackground = styled.div`
+  // 생략
+
+  ${props =>
+    props.disapper &&
+    css`
+      animation-name: ${fadeOut};
+    `}
+`;
+
+const DialogBlock = styled.div`
+  // 생략
+
+  ${props =>
+    props.disapper &&
+    css`
+      animation-name: ${slideDown};
+    `}
+`;
+```
