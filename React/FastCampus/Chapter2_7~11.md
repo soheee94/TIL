@@ -349,3 +349,80 @@ const colorStyles = css`
     /* 색상 */
   ${colorStyles}
 ```
+
+`size` props 를 설정하여 버튼의 크기도 다양하게 만들어보겠습니다.
+
+```javascript
+// Button.js
+const sizes = {
+  large: {
+    height: "3rem",
+    fontSize: "1.25rem"
+  },
+  medium: {
+    height: "2.25rem",
+    fontSize: "1rem"
+  },
+  small: {
+    height: "1.75rem",
+    fontSize: "0.875rem"
+  }
+};
+
+const sizeStyles = css`
+  /* 크기 */
+  ${({ size }) => css`
+    height: ${sizes[size].height};
+    font-size: ${sizes[size].fontSize};
+  `}
+`;
+```
+
+Button 컴포넌트에 `outline` 이라는 props 를 설정하여 이 값이 true 일 때에는 테두리만 지닌 버튼을 보여주도록 설정해보겠습니다.
+
+```javascript
+const colorStyles = css`
+  ${({ theme, color }) => {
+    const selected = theme.palette[color];
+    return css`
+      background: ${selected};
+      &:hover {
+        background: ${lighten(0.1, selected)};
+      }
+      &:active {
+        background: ${darken(0.1, selected)};
+      }
+
+      ${props =>
+        props.outline &&
+        css`
+          background: white;
+          border: 1px solid ${selected};
+          color: ${selected};
+          &:hover {
+            color: white;
+            background: ${selected};
+          }
+        `}
+    `;
+  }}
+`;
+```
+
+`fullWidth` 라는 props 가 주어졌다면 버튼의 크기가 100% 를 차지하도록 만들어보세요.
+
+```javascript
+// Button.js
+const fullWidthStyles = css`
+  ${props =>
+    props.fullWidth &&
+    css`
+      width: 100%;
+      justify-content: center;
+      & + & {
+        margin-top: 1rem;
+        margin-left: 0;
+      }
+    `}
+`;
+```
