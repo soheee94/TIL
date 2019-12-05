@@ -72,4 +72,16 @@ const GlobalStyle = createGlobalStyle`
 
 ## Todo Create
 
-github react-tutorial/Chapter3~
+# Context API 를 활용한 상태 관리
+
+## Context 만들기
+
+`state` 와 `dispatch` 를 Context 통하여 다른 컴포넌트에서 바로 사용 할 수 있게 해줄건데요, 우리는 하나의 Context 를 만들어서 `state` 와 `dispatch` 를 함께 넣어주는 대신에, 두개의 Context 를 만들어서 따로 따로 넣어줄 것입니다. <u>이렇게 하면 `dispatch` 만 필요한 컴포넌트에서 불필요한 렌더링을 방지 할 수 있습니다.</u> 추가적으로, 사용하게 되는 과정에서 더욱 편리하기도 합니다.
+
+> TodoItem.js 를 통해 확인 가능! state를 사용하지 않기 때문에 전체적으로 리렌더링 하지 않는다. dispatch는 변하지 않기 때문에 실제로 변화된 부분만 리렌더링 된다.
+
+## 기능 구현 하기
+
+Context 를 만들어주었으니, 이제 Context 와 연동을 하여 기능을 구현해봅시다. Context 에 있는 state 를 받아와서 렌더링을 하고, 필요한 상황에는 특정 액션을 dispatch 하면 됩니다.
+
+e.preventDefault(); // submit 시 새로고침 방지
