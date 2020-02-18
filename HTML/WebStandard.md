@@ -36,6 +36,12 @@ W3C 의 정의에 따르면 웹표준은 접근성, 사생활 보호, 보안, �
    기존 IE브라우저에서만 작동이 가능했던 요소들이 웹 표준을 준수함으로써 다양한 브라우저
    (크롬, 파이어폭스, 사파리, 오페라 등)에서도 작동
 
+## 웹 표준 검사
+
+[W3C MarkUp Validation Service](https://validator.w3.org/)
+
+[W3C CSS Validation Service](https://jigsaw.w3.org/css-validator/)
+
 [ 참고 사이트 ]
 
 1. https://helloworld-88.tistory.com/96
