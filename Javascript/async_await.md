@@ -30,7 +30,7 @@ process().then(() => {
 });
 ```
 
-async 함수에서 에러를 발생 시킬때에는 throw 를 사용하고, 에러를 잡아낼 때에는 try/catch 문을 사용합니다.
+async 함수에서 에러를 발생 시킬때에는 **throw** 를 사용하고, 에러를 잡아낼 때에는 try/catch 문을 사용합니다.
 
 ```javascript
 function sleep(ms) {
@@ -85,9 +85,9 @@ async function process() {
 process();
 ```
 
-Promise.all 를 사용 할 때에는, 등록한 프로미스 중 하나라도 실패하면, 모든게 실패 한 것으로 간주합니다. > try, catch 이용
+`Promise.all` 를 사용 할 때에는, 등록한 프로미스 중 하나라도 실패하면, 모든게 실패 한 것으로 간주합니다. > try, catch 이용
 
-Promise.race 라는 것에 대해서 알아봅시다. 이 함수는 Promise.all 과 달리, 여러개의 프로미스를 등록해서 실행했을 때 가장 빨리 끝난것 하나만의 결과값을 가져옵니다.
+`Promise.race` 라는 것에 대해서 알아봅시다. 이 함수는 `Promise.all` 과 달리, 여러개의 프로미스를 등록해서 실행했을 때 가장 빨리 끝난것 하나만의 결과값을 가져옵니다.
 
 ```javascript
 async function process() {
@@ -96,4 +96,4 @@ async function process() {
 }
 ```
 
-Promise.race 의 경우엔 가장 다른 Promise 가 먼저 성공하기 전에 가장 먼저 끝난 Promise 가 실패하면 이를 실패로 간주합니다. 따라서, 현재 위의 코드에서 getRabbit 에서 에러를 발생시킨다면 에러를 잡아낼 수 있지만, getTurtle 이나 getDog 에서 발생한 에러는 무시됩니다.
+`Promise.race` 의 경우엔 가장 다른 Promise 가 먼저 성공하기 전에 가장 먼저 끝난 Promise 가 실패하면 이를 실패로 간주합니다. 따라서, 현재 위의 코드에서 getRabbit 에서 에러를 발생시킨다면 에러를 잡아낼 수 있지만, getTurtle 이나 getDog 에서 발생한 에러는 무시됩니다.
