@@ -142,3 +142,40 @@ docker rm -f mycentos
 docker container prune
 ```
 
+### 2.2.4 컨테이너를 외부에 노출
+컨테이너는 가상 머신과 마찬가지로 가상 IP 주소를 할당 받는다. 도커는 컨테이너에 `172.17.0.x`의 IP를 순차적으로 할당한다.
+
+`ifconfig` : 컨테이너의 네트워크 인터페이스를 확인하는 명령어
+```cmd
+root@9007690f24f2:/# ifconfig
+eth0      Link encap:Ethernet  HWaddr 02:42:ac:11:00:02  
+          inet addr:172.17.0.2  Bcast:172.17.255.255  Mask:255.255.0.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:9 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:806 (806.0 B)  TX bytes:0 (0.0 B)
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+```
+- eth0 인터페이스: 172.17.0.2 할당
+- lo 인터페이스: 로컬호스트
+
+외부에서 접근하기 위해서는 eth0의 IP와 포트를 호스트의 IP와 포트에 바인딩해야한다.
+```
+docker run -i -t --name mywebserver -p 80:80 ubuntu:14.04
+```
+- `-p` : 컨테이너의 포트를 호스트의 포트와 바인딩해 연결할 수 있게 설정
+    (`[호스트의 포트]:[컨테이너의 포트]`)
+ 
+아파치 웹 서버는 기본적으로 80번 포트를 사용하므로 컨테이너의 80번 포트를 호스트와 연결한다.
+아파치 웹 서버의 설치 및 실행이 완료되면 `[도커 엔진 호스트이 IP]:80`으로 접근한다! 
+> 127.0.0.1:80 으로 접근함
+
+
