@@ -120,3 +120,25 @@ b5169d77d1ca   ubuntu:14.04   "/bin/bash"   About an hour ago   Exited (0) 41 mi
 ```cmd
 docker rename angry_morse my_container
 ```
+
+### 2.2.3 컨테이너 삭제
+`docker rm`: 컨테이너 삭제 (복구 안됨!)
+```cmd
+docker rm dazzling_rhodes
+dazzling_rhodes
+```
+실행 중인 컨테이너는 삭제할 수 없으므로 컨테이너를 정지한 뒤 삭제하거나, 강제로 삭제해야한다.
+```cmd
+// 정지한 뒤 삭제
+docker stop mycentos
+docker rm mycentos
+
+// 강제 삭제 옵션 추가
+docker rm -f mycentos
+```
+
+모든 컨테이너를 삭제해야할 경우 `prune` 명령어 사용!
+```cmd
+docker container prune
+```
+
