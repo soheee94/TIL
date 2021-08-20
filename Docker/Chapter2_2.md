@@ -44,7 +44,7 @@
     
   4. 이미지 내려 받기
      ```cmd
-     // 이미지 내려받
+     // 이미지 내려받기 
      docker pull centos:7
      
      7: Pulling from library/centos
@@ -90,3 +90,33 @@
        
        -> 컨테이너를 생성함과 동시에 시작하기 때문에 <u>run 명령어를 더 많이 사용한다!</u>
        
+       
+ ### 2.2.2 컨테이너 목록 확인
+`docker ps` : 정지되지 않은 컨테이너만 출력
+ ```cmd
+ docker ps             
+CONTAINER ID   IMAGE      COMMAND       CREATED          STATUS          PORTS     NAMES
+d0353e4549c3   centos:7   "/bin/bash"   38 minutes ago   Up 37 minutes             mycentos
+ ```
+
+`-a` : 정지된 컨테이너를 포함 모든 컨테이너를 출력하기 위한 옵션
+ 
+ ```cmd
+docker ps -a
+CONTAINER ID   IMAGE          COMMAND       CREATED             STATUS                      PORTS     NAMES
+d0353e4549c3   centos:7       "/bin/bash"   38 minutes ago      Up 38 minutes                         mycentos
+b5169d77d1ca   ubuntu:14.04   "/bin/bash"   About an hour ago   Exited (0) 41 minutes ago             dazzling_rhodes
+```
+
+- `CONTAINER ID` : 컨테이너의 고유 ID (docker inspect 명령어로 전체 ID 확인 가능)
+- `IMAGE`: 컨테이너를 생성할 때 사용된 이미지의 이름
+- `COMMAND`: 컨테이너가 시작될 때 실행될 명령어
+- `CREATED`: 생성되고 난 뒤 흐른 시간
+- `STATUS`: 컨테이너의 상태, 실행 중임은 `Up`, 종료된 상태는 `Exited`, 일시 중지된 상태는 `Pause` 등으로 표기한다.
+- `PORTS`: 컨테이너가 개방한 포트와 호스트에 연결한 포트를 나열
+- `NAMES`: 컨테이너의 고유한 이름, --name 옵션으로 설정하지 않으면 도커엔진이 임의로 이름을 설정한다.
+
+컨테이너 이름 변경하기 (angry_morse -> my_container)
+```cmd
+docker rename angry_morse my_container
+```
