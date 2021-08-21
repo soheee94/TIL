@@ -396,5 +396,39 @@ PING alicek106 (172.18.0.3) 56(84) bytes of data.
 MacVLAN은 호스트의 네트워크 인터페이스 카드를 가상화해 물리 네트워크 환경을 컨테이너에 동일하게 제공한다. 따라서 MacVLAN을 사용하면 컨테이너는 물리 네트워크 상에서 가상의 맥주소를 가지며, 해당 네트워크에 연결된 다른 장치와의 통신이 가능해진다.
 
 
+### 2.2.8 컨테이너 로깅
+#### json-file 로그 사용하기
+`docker logs`: 컨테이너의 표준 출력을 확인할 수 있는 명령어
+- `--tail [출력할 줄 수]` 옵션: 마지막 로그 줄 부터 출력할 줄의 수를 설정
+- `--since [유닉스 시간]` 옵션: 특정 시간 이후의 로그를 확인
+- `-t` 옵션: 타임스태프 표시
+- `-f` 옵션: 실시간으로 출력내용 확인
+
+컨테이너 로그는 json 형태로 도커 내부에 저장된다. 아래와 같은 경로로! 
+```
+cat /var/lib/docekr/containers/${CONTAINER_ID}/${CONTAINER_ID}-json.log
+```
+
+컨테이너 로그가 너무 많은 상태로 방치하면, json 파일의 크기가 계속해서 커지기 때문에 이를 방지하기 위해서 `--log-opt` 옵션으로 json 로그 파일의 최대 크기를 지정할 수 있다. 
+```
+docker run -it
+--log-opt max-size=10k --log-opt max-file=3
+--name log-test ubuntu:14.04
+```
+아무런 설정도 하지 않는다면 컨테이너 로그를 JSON파일로 저장한다.
+
+#### syslog 로그
+syslog: 유닉스 계열 운영체제에서 로그를 수집하는 오래된 표준 중 하나
+```
+docker run -d --name syslog_container
+--log-driver=syslog
+ubuntu:14.04
+echo syslogtest
+```
+
+#### fluentd 로깅
+fluentd는 각종 로그를 수집하고 저장할 수 있는 기능을 제공하는 오픈소스 도구로서, 도커 엔진의 컨테이너 로그를 fluented를 통해 저장할 수 있도록 플러그인을 공식적으로 제공한다.
+JSON 을 사용하기 때문에 쉽게 사용할 수 있고, 수집되는 데이터를 AWS S3, HDFS, MongoDB 등 다양한 저장소에 저장할 수 있다.
+
 
 
