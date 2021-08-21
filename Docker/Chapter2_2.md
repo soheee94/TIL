@@ -298,3 +298,103 @@ vs
 스테이트풀(stateful)
 - 컨테이너가 데이터를 저장하고 있는 경우
 - 지양하는 것이 좋다
+
+### 2.2.7 도커 네트워크
+#### 2.2.7.1 도커 네트워크 구조
+- `veth`: 컨테이너를 시작할 때 마다 호스트에 `veth-`(virtual eth)라는 네트워크 인터페이스를 생성함으로써 내부 IP와 외부망을 연결한다! (컨테이너의 eth0 인터페이스와 연결) 
+- `docker0` 브리지: 각 veth 인터페이스와 바인딩되어 호스트의 eth0 인터페이스와 이어주는 역할
+<img src="https://jonnung.dev/images/docker_network.png"/>
+
+#### 2.2.7.2 도커 네트워크 기능
+컨테이너를 생성하면 기본적으로 docker0 브리지를 통해 외부와 통신할 수 있는 환경을 사용할 수 있지만, 사용자의 선택에 따라 여러 네트워크 드라이버를 쓸 수 있다.
+도커가 제공하는 대표적인 네트워크 드라이버로는 브리지, 호스트, 논, 컨테이너, 오버레이가 있다.
+
+##### 브리지 네트워크
+: docker0 이 아닌 사용자 정의 브리지를 새로 생성해 각 컨테이너에 연결하는 네트워크 구조
+
+새로운 브리지 네트워크 생성
+```
+docker network create --driver bridge mybridge
+9b63ad4874e40f899d003ec4d712ffe4ed0e507ee054698b84a9919b7463ab68
+```
+mybridge 네트워크를 사용하는 컨테이너 생성
+```
+docker run -i -t --name mynetwork_container --net mybridge ubuntu:14.04
+```
+ifconfig로 확인하면 새로운 IP 대역이 할당된 것을 확인할 수 있다. 브리지 타입의 네트워크를 생성하면 도커는 IP 대역을 차례대로 할당한다.
+```
+root@978cfeaf1f62:/# ifconfig
+eth0      Link encap:Ethernet  HWaddr 02:42:ac:12:00:02  
+          inet addr:172.18.0.2  Bcast:172.18.255.255  Mask:255.255.0.0
+```
+
+사용자 정의 네트워크는 docker network connet, disconnect를 통해 컨테이너에 유동적으로 붙이고 뗄 수 있다.
+브리지 네트워크, 오버레이 네트워크와 같이 특정 IP 대역을 갖는 네트워크 모드에만 사용할 수 있다!
+
+#### 호스트 네트워크
+: 호스트의 네트워크 환경을 그대로 쓸 수 있는 네트워크 구조 
+```
+docker run -i -t --name network_host --net host ubuntu:14.04
+root@docker-desktop:/# 
+```
+- 호스트 머신에서 설정한 호스트 이름도 컨테이너가 물려받기 때문에 컨테이너의 호스트 이름도 호스트 머신의 호스트이름으로 설정된다.
+- 컨테이너 내부의 애플리케이션을 별도의 포트 포워딩 없이 바로 서비스할 수 있다.
+
+#### 논 네트워크
+: 아무런 네트워크를 쓰지 않는 구조
+
+```
+docker run -i -t --name network_none --net none ubuntu:14.04 
+root@d93e4ca5ad7c:/# ifconfig
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+```
+
+네트워크 인터페이스를 확인하면 로컬호스트(lo) 외에는 존재하지 않는다.
+
+#### 컨테이너 네트워크
+: 다른 컨테이너의 네트워크 네임스페이스 환경을 공유하는 네트워크 구조
+(공유되는 속성: 내부 IP, 네트워크 인터페이스의 맥 주소 등)
+
+```
+docker run -i -t -d --name network_container_1  ubuntu:14.04
+docker run -i -t -d --name network_container_2 --net container:network_container_1 ubuntu:14.04
+```
+- `--net` 옵션 값 : `container:[다른 컨테이너의 ID]`
+- `-i -t -d` 를 함께 사용하면 컨테이너 내부에서 셸을 실행하지만 내부로 들어가지 않으며 컨테이너가 종료되지 않는다! (테스트 용으로 생성할 때 유용)
+- network_container_2는 내부 IP를 새로 할당받지 않으며, 네트워크 관련 사항은 network_container_1와 모두 동일하다.
+
+#### 브리지 네트워크와 --net-alias
+: 브리지 타입의 네트워크와 run 명령어의 --net-alias 옵션을 함께 쓰면 특정 호스트 이름으로 컨테이너 여러개에 접근할 수 있다.
+```
+docker run -i -t -d --name network_alias_container1 --net mybridge --net-alias alicek106 ubuntu:14.04
+fb955e0082be74741c33d4302cce659aa37e6b2e72be60fc78baea4a747b3305
+
+docker run -i -t -d --name network_alias_container2 --net mybridge --net-alias alicek106 ubuntu:14.04
+b3b7965eea564d1c80fcef18313c55748f91581e83e138380380cef589eb5124
+
+docker run -i -t -d --name network_alias_container3 --net mybridge --net-alias alicek106 ubuntu:14.04
+```
+다른 컨테이너에서 alicek106 이라는 호스트 이름으로 위의 3개의 컨테이너에 접근할 수 있다. 
+세개의 컨테이너에 접근할 컨테이너를 생성한 뒤 alicek106 이라는 호스트 이름으로 ping 요청을 전송하면 컨테이너 3개의 IP로 각각 ping 전송이 된다!
+```
+docker run -i -t --name network_alias_ping --network mybridge ubuntu:14.04
+root@57943d24b3ee:/# ping -c 1 alicek106
+PING alicek106 (172.18.0.3) 56(84) bytes of data.
+64 bytes from network_alias_container2.mybridge (172.18.0.3): icmp_seq=1 ttl=64 time=4.45 ms
+```
+매번 달라지는 IP를 결정하는 것은 라운드 로빈 방식이다.
+
+- 라운드 로빈 : 하나의 중앙처리장치를 여러 프로세스들이 우선순위 없이 돌아가며 할당받아 실행되는 방식
+
+#### MacVLAN 네트워크
+MacVLAN은 호스트의 네트워크 인터페이스 카드를 가상화해 물리 네트워크 환경을 컨테이너에 동일하게 제공한다. 따라서 MacVLAN을 사용하면 컨테이너는 물리 네트워크 상에서 가상의 맥주소를 가지며, 해당 네트워크에 연결된 다른 장치와의 통신이 가능해진다.
+
+
+
+
