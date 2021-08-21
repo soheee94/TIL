@@ -430,5 +430,51 @@ echo syslogtest
 fluentd는 각종 로그를 수집하고 저장할 수 있는 기능을 제공하는 오픈소스 도구로서, 도커 엔진의 컨테이너 로그를 fluented를 통해 저장할 수 있도록 플러그인을 공식적으로 제공한다.
 JSON 을 사용하기 때문에 쉽게 사용할 수 있고, 수집되는 데이터를 AWS S3, HDFS, MongoDB 등 다양한 저장소에 저장할 수 있다.
 
+### 2.2.9 컨테이너 자원 할당 제한
+컨테이너의 자원 할당량을 조정하도록 옵션을 입력할 수 있다. 자원 할당 옵션을 설정하지 않으면 호스트의 자원을 전부 점유해 다른 컨테이너들뿐 아니라 호스트 자체의 동작이 멈출 수 있다.
+docker inspect 명령어로 설정된 자원 제한을 확인할 수 있다.
 
+#### 컨테이너 메모리 제한
+`--memory` 옵션으로 컨테이너의 메모리를 제한할 수 있다.
+- 단위: m(megabyte), g(gigabyte)
+- 최소 메모리: 4mb
 
+```
+docker run -d
+--memory=200m
+--memory-swap=500m
+--name memory_1g
+nginx
+```
+
+- 프로세스가 컨테이너에 할당된 메모리를 초과하면 자동으로 종료된다.
+- swap 메모리(가상 메모리: RAM에 용량이 부족할 경우 프로세스가 임시 저장되는 공간)는 메모리의 2배로 설정되지만, `--memory-swap` 옵션으로 지정할 수 있다.
+
+#### 컨테이너 CPU 제한
+1. --cpu-shares : 시스템에 존재하는 CPU를 어느 비중만큼 나눠 쓸 것인지 명시하는 옵션
+    ```
+    docker run -i -t --name cpu_share
+   --cpus-shares 1024
+   ubuntu:14.04
+   ```
+   - 상대적인 값을 가지고, 아무런 설정을 하지 않았을 때 1024의 값을 가지고 CPU 할당에서 1의 비중을 뜻한다.
+
+2. --cpuset-cpu : CPU가 여러개 있을 때 컨테이너가 특정 CPU만 사용하도록 설정
+3. --cpu-period, --cpu-quota : 스케줄링 주기를 변경하여 설정 (주기는 기본적으로 100ms로 설정)
+    ```
+   docker run -d --name quota_1_4
+   --cpu-period=100000 //100ms
+   --cpu-quota=25000
+   ```
+   - `[--cpu-quota 값]/[--cpu-period 값]` 만큼 CPU 시간을 할당받는다.
+   - 위의 예제는 일반적인 컨테이너보다 CPU 성능이 1/4 정도로 감소한다.
+4. --cpus : --cpu-period, --cpu-quota와 동일한 기능을 하지만 직관적으로 CPU의 개수를 직접 지정한다.
+    ```
+   docker run -d --name cpus_container
+   --cpus=0.5
+   ```
+   - CPU 성능이 1/2로 감소한다.
+   
+#### BLOCK I/O 제한
+컨테이너를 생성할 때, 파일을 읽고쓰는 대역폭 제한이 설정되지 않는다. 하나의 컨테이너가 블록 입출력을 과도하게 사용하지 않게 하려면 --device-write-bps, --device-read-bps, --device-write-iops, device-read-iops 옵션을 지정해 블록 입출력을 제한한다.
+단, Direct I/O의 경우에만 블록 입출력이 제한되고, Buffered I/O는 제한하지 않는다.
